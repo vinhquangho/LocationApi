@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Client Info API — Vị trí &amp; thiết bị</title>
+<style>
+  :root {
+    --bg: #070b16;
+    --card: rgba(255, 255, 255, 0.045);
+    --border: rgba(255, 255, 255, 0.09);
+    --text: #e8edf7;
+    --muted: #8e9bb5;
+    --accent: #5eead4;
+    --accent2: #818cf8;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .glow {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(900px 500px at 12% -10%, rgba(94, 234, 212, 0.16), transparent 60%),
+      radial-gradient(800px 500px at 95% 0%, rgba(129, 140, 248, 0.20), transparent 60%),
+      radial-gradient(700px 600px at 50% 110%, rgba(56, 189, 248, 0.12), transparent 60%);
+  }
+
+  .wrap {
+    position: relative;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 36px 20px 64px;
+  }
+
+  .top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 26px;
+  }
+
+  .brand { display: flex; gap: 14px; align-items: center; }
+
+  .brand .dot {
+    width: 42px; height: 42px;
+    border-radius: 13px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    box-shadow: 0 10px 30px rgba(94, 234, 212, 0.25);
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+  }
+
+  h1 { font-size: 21px; margin: 0; letter-spacing: -0.2px; }
+  .brand p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .btn {
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+    padding: 9px 15px;
+    border-radius: 11px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .15s ease, background .15s ease, border-color .15s ease;
+  }
+
+  .btn:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.22); }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #06121f;
+    border-color: transparent;
+  }
+  .btn[disabled] { opacity: .55; cursor: progress; transform: none; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 20px;
+    backdrop-filter: blur(14px);
+  }
+
+  .hero {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+
+  .hero .k {
+    display: block;
+    color: var(--muted);
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 6px;
+  }
+
+  #ip {
+    font-family: ui-monospace, Consolas, "Courier New", monospace;
+    font-size: 27px;
+    letter-spacing: -0.5px;
+  }
+
+  .pill {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 700;
+    vertical-align: middle;
+    background: rgba(94, 234, 212, 0.14);
+    color: var(--accent);
+    border: 1px solid rgba(94, 234, 212, 0.3);
+  }
+
+  .pill.warn {
+    background: rgba(251, 191, 36, 0.14);
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.3);
+  }
+
+  .hero-loc { display: flex; gap: 14px; align-items: center; }
+  .flag { font-size: 40px; line-height: 1; }
+  .city { font-size: 19px; font-weight: 650; }
+  .muted { color: var(--muted); font-size: 13px; }
+
+  .grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  }
+
+  .card h2 {
+    font-size: 14px;
+    margin: 0 0 14px;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: #cbd5e1;
+  }
+
+  .rows { display: flex; flex-direction: column; }
+
+  .row {
+    display: flex;
+    gap: 14px;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.07);
+    font-size: 13.5px;
+  }
+  .row:last-child { border-bottom: 0; }
+  .row .k { color: var(--muted); flex: 0 0 44%; }
+  .row .v {
+    text-align: right;
+    word-break: break-word;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 12.5px;
+  }
+
+  .links { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .links a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 13px;
+    border: 1px solid rgba(94, 234, 212, 0.28);
+    padding: 6px 12px;
+    border-radius: 9px;
+  }
+  .links a:hover { background: rgba(94, 234, 212, 0.1); }
+
+  .error { color: #fca5a5; }
+
+  footer { margin-top: 26px; text-align: center; }
+  footer code { color: #cbd5e1; }
+</style>
+</head>
+<body>
+<div class="glow"></div>
+
+<main class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="dot">◎</div>
+      <div>
+        <h1>Client Info API</h1>
+        <p>Vị trí theo IP · Thông tin thiết bị · Toạ độ GPS</p>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="btnReload">↻ Làm mới</button>
+      <button class="btn primary" id="btnGps">📍 Lấy vị trí chính xác</button>
+    </div>
+  </header>
+
+  <section class="card hero">
+    <div>
+      <span class="k">Địa chỉ IP của bạn</span>
+      <span id="ip">—</span>
+      <span class="pill" id="ipBadge">đang tải…</span>
+    </div>
+    <div class="hero-loc">
+      <span class="flag" id="flag">🌐</span>
+      <div>
+        <div class="city" id="city">Đang tải…</div>
+        <div class="muted" id="region">—</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <h2>🗺️ Vị trí ước lượng theo IP</h2>
+      <div class="rows" id="locRows"></div>
+      <div class="links" id="locLinks"></div>
+    </section>
+
+    <section class="card">
+      <h2>💻 Thông tin thiết bị</h2>
+      <div class="rows" id="devRows"></div>
+    </section>
+
+    <section class="card">
+      <h2>🌐 Yêu cầu HTTP</h2>
+      <div class="rows" id="reqRows"></div>
+    </section>
+
+    <section class="card">
+      <h2>📍 Toạ độ GPS chính xác</h2>
+      <div class="rows" id="gpsRows">
+        <div class="row"><span class="k">Trạng thái</span><span class="v">Chưa yêu cầu quyền</span></div>
+      </div>
+    </section>
+  </div>
+
+  <footer class="muted">
+    API: <code>GET /api/client-info</code> · <code>GET /api/location</code> ·
+    <code>GET /api/device</code> · <code>GET /api/ip</code> ·
+    <code>POST /api/location/precise</code>
+  </footer>
+</main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const esc = (value) => String(value ?? '—').replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+
+  const flagOf = (code) => code
+    ? code.toUpperCase().replace(/./g, (c) => String.fromCodePoint(127397 + c.charCodeAt(0)))
+    : '🌐';
+
+  function renderRows(target, pairs) {
+    const visible = pairs.filter(([, v]) =>
+      v !== null && v !== undefined && v !== '' && !(Array.isArray(v) && v.length === 0));
+
+    target.innerHTML = visible.length
+      ? visible.map(([k, v]) => `<div class="row"><span class="k">${esc(k)}</span><span class="v">${esc(Array.isArray(v) ? v.join(', ') : v)}</span></div>`).join('')
+      : '<div class="row"><span class="k">Không có dữ liệu</span></div>';
+  }
+
+  const num = (value, digits = 4) => (typeof value === 'number' ? value.toFixed(digits) : null);
+
+  async function loadClientInfo() {
+    $('btnReload').disabled = true;
+
+    try {
+      const response = await fetch('/api/client-info');
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+
+      const data = await response.json();
+      const loc = data.location || {};
+      const dev = data.device || {};
+      const req = data.request || {};
+
+      // --- Khối hero ---
+      $('ip').textContent = data.ip || '—';
+      const badge = $('ipBadge');
+      badge.textContent = data.isPublicIp ? 'IP công khai' : 'IP nội bộ / loopback';
+      badge.classList.toggle('warn', !data.isPublicIp);
+
+      $('flag').textContent = flagOf(loc.countryCode);
+      $('city').textContent = loc.city || loc.region || loc.country || 'Không xác định';
+      $('region').textContent = [loc.region, loc.country].filter(Boolean).join(', ') || '—';
+
+      // --- Vị trí theo IP ---
+      const locRows = [
+        ['Quốc gia', loc.country ? `${loc.country} (${loc.countryCode || '?'})` : null],
+        ['Châu lục', loc.continent],
+        ['Vùng / Bang', loc.region],
+        ['Thành phố', loc.city],
+        ['Mã bưu chính', loc.postalCode],
+        ['Vĩ độ', num(loc.latitude)],
+        ['Kinh độ', num(loc.longitude)],
+        ['Múi giờ', loc.timeZone],
+        ['Nhà mạng (ISP)', loc.isp],
+        ['Tổ chức', loc.organization],
+        ['ASN', loc.asn],
+        ['Loại IP', loc.ipType],
+        ['Nguồn dữ liệu', loc.provider],
+        ['Độ chính xác', loc.accuracy]
+      ];
+
+      if (loc.success === false && loc.error) {
+        locRows.unshift(['Lỗi', loc.error]);
+      }
+
+      if (loc.resolvedUsingServerPublicIp) {
+        locRows.push(['Lưu ý', 'Client là IP nội bộ nên đã tra cứu theo IP công khai của máy chủ']);
+      }
+
+      renderRows($('locRows'), locRows);
+
+      const links = [];
+      if (loc.googleMapsUrl) links.push(`<a href="${esc(loc.googleMapsUrl)}" target="_blank" rel="noopener">Google Maps</a>`);
+      if (loc.openStreetMapUrl) links.push(`<a href="${esc(loc.openStreetMapUrl)}" target="_blank" rel="noopener">OpenStreetMap</a>`);
+      links.push(`<a href="/api/location" target="_blank" rel="noopener">JSON: /api/location</a>`);
+      $('locLinks').innerHTML = links.join('');
+
+      // --- Thiết bị ---
+      renderRows($('devRows'), [
+        ['Loại thiết bị', dev.deviceType],
+        ['Thiết bị', dev.deviceFamily],
+        ['Hãng sản xuất', dev.deviceBrand],
+        ['Model', dev.deviceModel],
+        ['Hệ điều hành', dev.operatingSystem ? `${dev.operatingSystem} ${dev.operatingSystemVersion || ''}`.trim() : null],
+        ['Trình duyệt', dev.browser ? `${dev.browser} ${dev.browserVersion || ''}`.trim() : null],
+        ['Engine', dev.browserEngine],
+        ['Kiến trúc CPU', dev.cpuArchitecture],
+        ['Nền tảng (Client Hints)', dev.platform ? `${dev.platform} ${dev.platformVersion || ''}`.trim() : null],
+        ['Thương hiệu (Client Hints)', dev.clientHintBrands],
+        ['Ngôn ngữ ưu tiên', dev.preferredLanguage],
+        ['Ngôn ngữ chấp nhận', dev.acceptLanguages],
+        ['Di động', dev.isMobile ? 'Có' : 'Không'],
+        ['Máy tính', dev.isDesktop ? 'Có' : 'Không'],
+        ['Máy tính bảng', dev.isTablet ? 'Có' : 'Không'],
+        ['Bot / Crawler', dev.isBot ? 'Có' : 'Không']
+      ]);
+
+      // --- Yêu cầu HTTP ---
+      renderRows($('reqRows'), [
+        ['Phương thức', req.method],
+        ['Đường dẫn', req.path],
+        ['Giao thức', req.protocol],
+        ['Scheme', req.isHttps ? 'https' : 'http'],
+        ['Host', req.host],
+        ['Referer', req.referer],
+        ['Origin', req.origin],
+        ['X-Forwarded-For', req.forwardedFor],
+        ['Trace ID', req.traceIdentifier],
+        ['User-Agent', dev.userAgent]
+      ]);
+    } catch (error) {
+      $('city').textContent = 'Không gọi được API';
+      $('region').innerHTML = `<span class="error">${esc(error.message)}</span>`;
+    } finally {
+      $('btnReload').disabled = false;
+    }
+  }
+
+  function getPreciseLocation() {
+    if (!navigator.geolocation) {
+      renderRows($('gpsRows'), [['Trạng thái', 'Trình duyệt không hỗ trợ Geolocation API']]);
+      return;
+    }
+
+    $('btnGps').disabled = true;
+    renderRows($('gpsRows'), [['Trạng thái', 'Đang chờ bạn cấp quyền vị trí…']]);
+
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const payload = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracyMeters: position.coords.accuracy,
+        altitudeMeters: position.coords.altitude,
+        source: 'browser-geolocation'
+      };
+
+      try {
+        const response = await fetch('/api/location/precise', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        const row = data.browserLocation || {};
+
+        renderRows($('gpsRows'), [
+          ['Trạng thái', 'Đã lấy được vị trí'],
+          ['Vĩ độ (GPS)', num(row.latitude, 6)],
+          ['Kinh độ (GPS)', num(row.longitude, 6)],
+          ['Sai số', row.accuracyMeters ? `±${Math.round(row.accuracyMeters)} m` : null],
+          ['Độ cao', row.altitudeMeters ? `${Math.round(row.altitudeMeters)} m` : null],
+          ['Nguồn', row.source],
+          ['Khoảng cách tới vị trí theo IP', typeof data.distanceFromIpLocationKm === 'number'
+            ? `${data.distanceFromIpLocationKm} km`
+            : 'Không so sánh được']
+        ]);
+
+        const maps = row.googleMapsUrl;
+        if (maps) {
+          $('gpsRows').insertAdjacentHTML('beforeend',
+            `<div class="links"><a href="${esc(maps)}" target="_blank" rel="noopener">Mở Google Maps</a>` +
+            `<a href="/api/location/precise" target="_blank" rel="noopener">Xem endpoint</a></div>`);
+        }
+      } catch (error) {
+        renderRows($('gpsRows'), [['Lỗi', error.message]]);
+      } finally {
+        $('btnGps').disabled = false;
+      }
+    }, (error) => {
+      renderRows($('gpsRows'), [
+        ['Trạng thái', 'Không lấy được vị trí GPS'],
+        ['Lý do', error.message]
+      ]);
+      $('btnGps').disabled = false;
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+  }
+
+  $('btnReload').addEventListener('click', loadClientInfo);
+  $('btnGps').addEventListener('click', getPreciseLocation);
+
+  loadClientInfo();
+</script>
+</body>
+</html>

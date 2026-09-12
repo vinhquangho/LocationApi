@@ -1,0 +1,35 @@
+@LocationApi_HostAddress = http://localhost:5184
+
+### 1. Tổng hợp: IP + vị trí + thiết bị
+GET {{LocationApi_HostAddress}}/api/client-info
+Accept: application/json
+
+### 2. Chỉ lấy địa chỉ IP của client
+GET {{LocationApi_HostAddress}}/api/ip
+Accept: application/json
+
+### 3. Chỉ lấy vị trí ước lượng theo IP
+GET {{LocationApi_HostAddress}}/api/location
+Accept: application/json
+
+### 4. Chỉ lấy thông tin thiết bị
+GET {{LocationApi_HostAddress}}/api/device
+Accept: application/json
+
+### 5. Giả lập IP của một client khác qua X-Forwarded-For (chỉ dùng khi chạy sau proxy)
+GET {{LocationApi_HostAddress}}/api/client-info
+X-Forwarded-For: 203.113.152.10
+
+### 6. Gửi toạ độ GPS chính xác từ trình duyệt
+POST {{LocationApi_HostAddress}}/api/location/precise
+Content-Type: application/json
+
+{
+  "latitude": 21.028511,
+  "longitude": 105.804817,
+  "accuracyMeters": 25,
+  "source": "browser-geolocation"
+}
+
+###
+

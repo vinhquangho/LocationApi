@@ -1,0 +1,58 @@
+# ===== .NET =====
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# Kết quả build / publish
+publish/
+publishoutput/
+[Pp]ublish[Pp]rofiles/
+*.publishsettings
+*.pubxml
+
+# ===== Visual Studio / VS Code =====
+.vs/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+.idea/
+*.swp
+
+# ===== Test / coverage =====
+[Tt]est[Rr]esult*/
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# ===== Rider =====
+*.sln.iml
+_ReSharper*/
+*.DotSettings.user
+
+# ===== Hệ điều hành =====
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# ===== Bí mật / cấu hình local =====
+# appsettings.Development.json của template không chứa bí mật nên vẫn được commit.
+appsettings.Local.json
+appsettings.Production.json
+*.env
+.env
+secrets.json
+
+# ===== OneDrive =====
+*.TMP
+~$*
