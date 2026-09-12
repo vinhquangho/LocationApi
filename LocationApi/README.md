@@ -191,3 +191,50 @@ không thể lấy được từ phía server — cần JavaScript ở client.
 - Giới hạn CORS theo domain cụ thể thay vì `AllowAnyOrigin`.
 - Thêm rate limiting (`builder.Services.AddRateLimiter(...)`) để tránh bị lạm dụng.
 - Bật HTTPS và ghi log việc thu thập dữ liệu vị trí cá nhân theo quy định hiện hành.
+
+---
+
+## 7. Deploy
+
+### Render.com (miễn phí) — khuyến nghị
+
+Repo đã có sẵn `render.yaml` (Blueprint) và `LocationApi/Dockerfile`.
+
+1. Đăng ký/đăng nhập <https://render.com> bằng chính tài khoản GitHub.
+2. Vào **Dashboard → New → Blueprint**.
+3. Chọn repo `LocationApi` → **Connect** → **Apply**.
+4. Render tự build Docker image và cấp cho bạn một URL dạng
+   `https://location-api-xxxx.onrender.com`.
+
+**Lưu ý về gói Free của Render:**
+
+- Service sẽ **ngủ sau ~15 phút** không có truy cập; request đầu tiên sau đó mất
+  khoảng 30–60 giây để "thức dậy" (cold start).
+- Biến môi trường `PORT` do Render cung cấp đã được `Program.cs` đọc tự động.
+
+### Chạy bằng Docker ở máy local
+
+```bash
+cd LocationApi
+docker build -t location-api .
+docker run -p 8080:8080 location-api
+# Mở http://localhost:8080/
+```
+
+### Azure App Service
+
+```bash
+# Cần cài Azure CLI rồi đăng nhập: az login
+az group create --name rg-locationapi --location southeastasia
+az appservice plan create --name plan-locationapi --resource-group rg-locationapi --sku F1 --is-linux
+az webapp create --name locationapi-unique-name --resource-group rg-locationapi \
+  --plan plan-locationapi --runtime "DOTNETCORE:10.0"
+az webapp deploy --resource-group rg-locationapi --name locationapi-unique-name \
+  --src-path ./publish --type zip
+```
+
+### Fly.io / Railway / Google Cloud Run
+
+Dùng đúng `LocationApi/Dockerfile` có sẵn — tất cả đều đọc biến `PORT`
+hoặc `ASPNETCORE_HTTP_PORTS` nên chạy được không cần sửa code.
+

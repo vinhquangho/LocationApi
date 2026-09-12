@@ -1,0 +1,27 @@
+# ============================================================================
+#  Render Blueprint - https://render.com/docs/blueprint-spec
+#  Cách dùng: vào Render Dashboard -> New -> Blueprint -> chọn repo này -> Apply
+#  Render sẽ tự đọc file này và tạo Web Service dùng Dockerfile có sẵn.
+# ============================================================================
+
+services:
+  - type: web
+    name: location-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./LocationApi/Dockerfile
+    dockerContext: ./LocationApi
+    healthCheckPath: /api/ip
+    autoDeploy: true
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: GeoLocation__BaseUrl
+        value: https://ipwho.is
+      - key: GeoLocation__PublicIpLookupUrl
+        value: https://api.ipify.org?format=json
+      - key: GeoLocation__TimeoutSeconds
+        value: "8"
+      - key: GeoLocation__CacheMinutes
+        value: "30"
